@@ -1,0 +1,58 @@
+<div class="p-8">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Usuarios</h1>
+    <p class="text-gray-500 text-sm mt-1">Estudiantes y egresados registrados en la plataforma</p>
+  </div>
+
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    @if (cargando) {
+      <div class="flex justify-center py-16">
+        <div class="w-8 h-8 border-4 border-blue-800 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }
+    @if (error) {
+      <div class="p-6 text-red-600 text-sm">{{ error }}</div>
+    }
+    @if (!cargando && !error) {
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-100">
+            <tr>
+              <th class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre</th>
+              <th class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Teléfono</th>
+              <th class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Rol</th>
+              <th class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
+              <th class="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            @for (u of usuarios; track u.idUsuario) {
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ u.nombre }} {{ u.apellido }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ u.email }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ u.telefono || '—' }}</td>
+                <td class="px-6 py-4">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full {{ rolClass(u.tipoUsuario) }}">{{ u.tipoUsuario }}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full {{ u.estado ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500' }}">
+                    {{ u.estado ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <button (click)="eliminar(u.idUsuario!)" class="text-red-500 hover:text-red-700 text-sm font-medium transition-colors">
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (usuarios.length === 0) {
+        <div class="text-center py-16 text-gray-400 text-sm">No hay usuarios registrados.</div>
+      }
+    }
+  </div>
+</div>

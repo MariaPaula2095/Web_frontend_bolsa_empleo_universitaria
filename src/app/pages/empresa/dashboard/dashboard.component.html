@@ -1,0 +1,42 @@
+<div class="p-8">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">Bienvenido{{ empresa ? ', ' + empresa.nombre : '' }}</h1>
+    <p class="text-gray-500 text-sm mt-1">Gestiona tus ofertas y revisa los candidatos</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <p class="text-sm text-gray-500">Total ofertas publicadas</p>
+      <p class="text-3xl font-bold text-gray-900 mt-1">{{ ofertasCount }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <p class="text-sm text-gray-500">Ofertas activas</p>
+      <p class="text-3xl font-bold text-green-700 mt-1">{{ ofertasActivas }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <p class="text-sm text-gray-500">Total postulantes</p>
+      <p class="text-3xl font-bold text-blue-700 mt-1">{{ postulantesCount }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <a routerLink="../ofertas" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex items-center gap-4">
+      <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+        <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Publicar nueva oferta</p>
+        <p class="text-gray-400 text-sm">Crea y gestiona tus vacantes</p>
+      </div>
+    </a>
+    <a routerLink="../postulantes" class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex items-center gap-4">
+      <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+        <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-900">Ver postulantes</p>
+        <p class="text-gray-400 text-sm">Revisa y gestiona candidatos</p>
+      </div>
+    </a>
+  </div>
+</div>
