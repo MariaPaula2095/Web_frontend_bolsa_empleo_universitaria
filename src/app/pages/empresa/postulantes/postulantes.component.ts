@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
-import { EmpresaService } from '../../../core/services/empresa.service';
 import { OfertaLaboralService } from '../../../core/services/oferta-laboral.service';
 import { PostulacionService } from '../../../core/services/postulacion.service';
+import { UsuarioService } from '../../../core/services/usuario.service';
 import { OfertaLaboral } from '../../../core/models/oferta-laboral.model';
 import { Postulacion } from '../../../core/models/postulacion.model';
+import { Usuario } from '../../../core/models/usuario.model';
 
 @Component({
   selector: 'app-empresa-postulantes',
@@ -14,37 +15,49 @@ import { Postulacion } from '../../../core/models/postulacion.model';
 export class PostulantesComponent implements OnInit {
   ofertas: OfertaLaboral[] = [];
   postulantes: { [idOferta: number]: Postulacion[] } = {};
+  usuarios: { [idUsuario: number]: Usuario } = {};
   expandido: number | null = null;
   cargando = true;
   actualizando: number | null = null;
 
   constructor(
     private auth: AuthService,
-    private empresaService: EmpresaService,
     private ofertaService: OfertaLaboralService,
-    private postulacionService: PostulacionService
+    private postulacionService: PostulacionService,
+    private usuarioService: UsuarioService
   ) {}
 
   ngOnInit(): void {
-    const email = this.auth.getSub();
-    if (email) {
-      this.empresaService.listar().subscribe(empresas => {
-        const empresa = empresas.find(e => e.email === email);
-        if (empresa?.idEmpresa) {
-          this.ofertaService.listar().subscribe(ofertas => {
-            this.ofertas = ofertas.filter((o: OfertaLaboral) => o.empresa?.idEmpresa === empresa.idEmpresa);
-            this.cargando = false;
-          });
-        }
-      });
-    }
+    const idEmpresa = Number(this.auth.getId());
+
+    // Cargar usuarios para cruzar con postulaciones
+    this.usuarioService.listar().subscribe({
+      next: usuarios => {
+        usuarios.forEach(u => {
+          if (u.idUsuario) this.usuarios[u.idUsuario] = u;
+        });
+      },
+      error: () => {}
+    });
+
+    // Cargar ofertas de esta empresa
+    this.ofertaService.listar().subscribe({
+      next: ofertas => {
+        this.ofertas = ofertas.filter(o => Number((o as any).idEmpresa) === idEmpresa);
+        this.cargando = false;
+      },
+      error: () => { this.cargando = false; }
+    });
   }
 
   verPostulantes(idOferta: number): void {
     if (this.expandido === idOferta) { this.expandido = null; return; }
     this.expandido = idOferta;
     if (!this.postulantes[idOferta]) {
-      this.postulacionService.porOferta(idOferta).subscribe(p => this.postulantes[idOferta] = p);
+      this.postulacionService.porOferta(idOferta).subscribe({
+        next: p => this.postulantes[idOferta] = p,
+        error: () => this.postulantes[idOferta] = []
+      });
     }
   }
 
@@ -66,14 +79,20 @@ export class PostulantesComponent implements OnInit {
     return 'bg-yellow-100 text-yellow-800';
   }
 
-  candidatoNombre(p: Postulacion): string {
-    if (!p.usuario) return '—';
-    if (typeof p.usuario === 'string') return p.usuario;
-    return `${p.usuario.nombre ?? ''} ${p.usuario.apellido ?? ''}`.trim() || p.usuario.email || '—';
+  candidatoNombre(p: any): string {
+    // Intentar con objeto usuario anidado
+    if (p.usuario && typeof p.usuario === 'object') {
+      return `${p.usuario.nombre ?? ''} ${p.usuario.apellido ?? ''}`.trim() || p.usuario.email || '—';
+    }
+    // Cruzar con mapa de usuarios por idUsuario
+    const u = this.usuarios[p.idUsuario];
+    if (u) return `${u.nombre ?? ''} ${u.apellido ?? ''}`.trim() || u.email || '—';
+    return '—';
   }
 
-  candidatoEmail(p: Postulacion): string {
-    if (!p.usuario || typeof p.usuario === 'string') return '';
-    return p.usuario.email ?? '';
+  candidatoEmail(p: any): string {
+    if (p.usuario && typeof p.usuario === 'object') return p.usuario.email ?? '';
+    const u = this.usuarios[p.idUsuario];
+    return u?.email ?? '';
   }
 }

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
-import { UsuarioService } from '../../../core/services/usuario.service';
 import { PerfilService } from '../../../core/services/perfil.service';
 import { Perfil } from '../../../core/models/perfil.model';
 
@@ -22,7 +21,6 @@ export class PerfilComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
-    private usuarioService: UsuarioService,
     private perfilService: PerfilService
   ) {
     this.form = this.fb.group({
@@ -42,60 +40,33 @@ export class PerfilComponent implements OnInit {
       this.idUsuario = Number(idStr);
       this.cargarPerfil();
     } else {
-      const email = this.auth.getSub();
-      this.perfilService.listar().subscribe({
-        next: perfiles => {
-          const mio = this.encontrarMiPerfil(perfiles, email);
-          if (mio) {
-            const u = mio.usuario;
-            const id = typeof u === 'number' ? u : (u?.idUsuario ?? u?.id ?? u?.userId);
-            if (id) { this.idUsuario = Number(id); this.auth.storeId(Number(id)); }
-            this.perfilExistente = mio;
-            this.form.patchValue(mio);
-          }
-          this.cargando = false;
-        },
-        error: () => { this.cargando = false; }
-      });
+      this.cargando = false;
     }
   }
 
   private cargarPerfil(): void {
-    const email = this.auth.getSub();
     this.perfilService.listar().subscribe({
       next: perfiles => {
-        const mio = this.encontrarMiPerfil(perfiles, email);
-        if (mio) { this.perfilExistente = mio; this.form.patchValue(mio); }
+        const mio = perfiles.find((p: any) => Number(p.idUsuario) === Number(this.idUsuario));
+        if (mio) {
+          this.perfilExistente = mio;
+          this.form.patchValue(mio);
+        }
         this.cargando = false;
       },
       error: () => { this.cargando = false; }
     });
   }
 
-  private encontrarMiPerfil(perfiles: any[], email: string | null): any {
-    if (!perfiles.length) return null;
-    const porEmail = perfiles.find((p: any) => {
-      const u = p.usuario;
-      if (!u || typeof u !== 'object') return false;
-      return u.email === email || u.correo === email || u.username === email;
-    });
-    if (porEmail) return porEmail;
-    const porId = perfiles.find((p: any) => {
-      const u = p.usuario;
-      if (typeof u === 'number') return u === this.idUsuario;
-      if (typeof u === 'object') return (u?.idUsuario ?? u?.id) === this.idUsuario;
-      return false;
-    });
-    if (porId) return porId;
-    if (perfiles.length === 1) return perfiles[0];
-    return null;
-  }
-
   guardar(): void {
-    if (!this.idUsuario) return;
+    if (!this.idUsuario) {
+      this.mensaje = 'No se pudo identificar tu usuario. Cierra sesión y vuelve a entrar.';
+      this.esError = true;
+      return;
+    }
     this.guardando = true;
     this.mensaje = '';
-    const datos: Perfil = { ...this.form.value, usuario: { idUsuario: this.idUsuario } };
+    const datos: Perfil = { ...this.form.value, idUsuario: this.idUsuario };
 
     const obs = this.perfilExistente
       ? this.perfilService.actualizar(this.perfilExistente.idPerfil!, datos)
@@ -103,9 +74,10 @@ export class PerfilComponent implements OnInit {
 
     obs.subscribe({
       next: () => {
-        this.mensaje = 'Perfil guardado correctamente';
+        this.mensaje = this.perfilExistente ? 'Perfil actualizado correctamente' : 'Perfil guardado correctamente';
         this.esError = false;
         this.guardando = false;
+        this.cargarPerfil();
       },
       error: () => {
         this.mensaje = 'Error al guardar el perfil';

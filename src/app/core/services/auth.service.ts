@@ -23,16 +23,22 @@ export class AuthService {
   }
 
   private guardarSesion(res: any, rolForzado?: string): void {
-    const token = typeof res === 'string' ? res : (res?.token ?? res?.jwt ?? '');
-    if (!token) return;
-    localStorage.setItem('token', token);
-    const payload = this.decodificar(token);
-    const rol = rolForzado ?? payload.rol ?? payload.role ?? payload.tipoUsuario ?? '';
-    localStorage.setItem('rol', rol);
-    localStorage.setItem('sub', payload.sub ?? '');
-    const id = payload.id ?? payload.idUsuario ?? payload.userId ?? payload.sub_id;
-    if (id) localStorage.setItem('id', String(id));
-  }
+  const token = typeof res === 'string' ? res : (res?.token ?? res?.jwt ?? '');
+  if (!token) return;
+  localStorage.setItem('token', token);
+  const payload = this.decodificar(token);
+  const rol = rolForzado ?? payload.rol ?? payload.role ?? payload.tipoUsuario ?? '';
+  localStorage.setItem('rol', rol);
+  localStorage.setItem('sub', payload.sub ?? '');
+
+  // ID de usuario o empresa
+  const idJwt = payload.id ?? payload.idUsuario ?? payload.userId ?? payload.sub_id;
+  const idBody = res?.usuario?.idUsuario ?? res?.usuario?.id
+               ?? res?.empresa?.idEmpresa ?? res?.empresa?.id
+               ?? res?.id ?? res?.idUsuario;
+  const id = idJwt ?? idBody;
+  if (id) localStorage.setItem('id', String(id));
+}
 
   logout(): void {
     localStorage.clear();

@@ -10,6 +10,10 @@ export class PerfilService {
 
   constructor(private http: HttpClient) {}
 
+  miPerfil(): Observable<Perfil> {
+    return this.http.get<Perfil>(`${this.api}/mi-perfil`);
+  }
+
   guardar(perfil: Perfil): Observable<any> {
     return this.http.post(`${this.api}/guardar`, perfil);
   }

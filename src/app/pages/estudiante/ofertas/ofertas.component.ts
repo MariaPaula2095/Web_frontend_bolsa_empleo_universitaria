@@ -59,19 +59,19 @@ export class OfertasComponent implements OnInit {
   }
 
   postular(idOferta: number): void {
-    if (!this.idUsuario) { this.mensaje = 'Espera un momento e intenta de nuevo.'; return; }
-    this.postulando = idOferta;
-    this.postulacionService.guardar({
-      usuario: { idUsuario: this.idUsuario },
-      ofertaLaboral: { idOferta }
-    }).subscribe({
-      next: () => {
-        this.postulando = null;
-        this.router.navigate(['/estudiante/postulaciones']);
-      },
-      error: () => { this.mensaje = 'Error al postularse. Puede que ya estés postulado.'; this.postulando = null; }
-    });
-  }
+  if (!this.idUsuario) { this.mensaje = 'Espera un momento e intenta de nuevo.'; return; }
+  this.postulando = idOferta;
+  this.postulacionService.guardar({
+    idUsuario: this.idUsuario,
+    idOferta: idOferta
+  } as any).subscribe({
+    next: () => {
+      this.postulando = null;
+      this.router.navigate(['/estudiante/postulaciones']);
+    },
+    error: () => { this.mensaje = 'Error al postularse. Puede que ya estés postulado.'; this.postulando = null; }
+  });
+}
 
   modalidadClass(m?: string): string {
     if (m === 'REMOTO') return 'bg-green-100 text-green-800';
