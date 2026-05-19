@@ -6,6 +6,7 @@ export interface Perfil {
   habilidades?: string;
   experiencia?: string;
   cvUrl?: string;
-  disponibilidad?: 'INMEDIATA' | 'POR_DEFINIR';
+  disponibilidad?: string;
   usuario?: any;
+  idUsuario?: number;
 }

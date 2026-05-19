@@ -18,8 +18,8 @@ export class UsuarioService {
     return this.http.get<Usuario[]>(`${this.api}/listar`);
   }
 
-  buscarPorEmail(email: string): Observable<Usuario> {
-    return this.http.get<Usuario>(`${this.api}/buscar-email`, { params: { email } });
+  buscarPorEmail(email: string): Observable<Usuario[]> {
+  return this.http.get<Usuario[]>(`${this.api}/listar`);
   }
 
   actualizar(id: number, usuario: Partial<Usuario>): Observable<any> {

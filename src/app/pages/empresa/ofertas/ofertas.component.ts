@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
-import { EmpresaService } from '../../../core/services/empresa.service';
 import { OfertaLaboralService } from '../../../core/services/oferta-laboral.service';
 import { OfertaLaboral } from '../../../core/models/oferta-laboral.model';
-import { Empresa } from '../../../core/models/empresa.model';
 
 @Component({
   selector: 'app-empresa-ofertas',
@@ -13,7 +11,6 @@ import { Empresa } from '../../../core/models/empresa.model';
 })
 export class OfertasComponent implements OnInit {
   ofertas: OfertaLaboral[] = [];
-  empresa: Empresa | null = null;
   cargando = true;
   mostrarForm = false;
   editando: OfertaLaboral | null = null;
@@ -24,7 +21,6 @@ export class OfertasComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
-    private empresaService: EmpresaService,
     private ofertaService: OfertaLaboralService
   ) {
     this.form = this.fb.group({
@@ -39,21 +35,14 @@ export class OfertasComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const email = this.auth.getSub();
-    this.empresaService.listar().subscribe(empresas => {
-      this.empresa = empresas.find(e => e.email?.toLowerCase() === email?.toLowerCase()) ?? null;
-      this.cargarOfertas();
-    });
+    this.cargarOfertas();
   }
 
   cargarOfertas(): void {
+    const idEmpresa = Number(this.auth.getId());
     this.ofertaService.listar().subscribe({
       next: data => {
-        const myId = Number(this.empresa?.idEmpresa);
-        this.ofertas = data.filter(o => {
-          const oid = Number(o.idEmpresa) || Number((o.empresa as any)?.idEmpresa);
-          return oid === myId;
-        });
+        this.ofertas = data.filter(o => Number((o as any).idEmpresa) === idEmpresa);
         this.cargando = false;
       },
       error: () => { this.cargando = false; }
@@ -71,9 +60,10 @@ export class OfertasComponent implements OnInit {
   cerrarForm(): void { this.mostrarForm = false; this.editando = null; }
 
   guardar(): void {
-    if (this.form.invalid || !this.empresa) return;
+    if (this.form.invalid) return;
     this.guardando = true;
-    const datos: OfertaLaboral = { ...this.form.value, empresa: { idEmpresa: this.empresa.idEmpresa } };
+    const idEmpresa = Number(this.auth.getId());
+    const datos: OfertaLaboral = { ...this.form.value, idEmpresa };
 
     const obs = this.editando
       ? this.ofertaService.actualizar(this.editando.idOferta!, datos)

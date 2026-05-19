@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { UsuarioService } from '../../../core/services/usuario.service';
 import { PostulacionService } from '../../../core/services/postulacion.service';
 import { OfertaLaboralService } from '../../../core/services/oferta-laboral.service';
 import { Postulacion } from '../../../core/models/postulacion.model';
@@ -13,43 +12,50 @@ import { OfertaLaboral } from '../../../core/models/oferta-laboral.model';
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
+
   nombre = '';
   postulaciones: Postulacion[] = [];
+  ofertasMap: { [id: number]: OfertaLaboral } = {};
   ofertas: OfertaLaboral[] = [];
   idUsuario: number | null = null;
   aceptadas = 0;
 
   constructor(
     private auth: AuthService,
-    private usuarioService: UsuarioService,
     private postulacionService: PostulacionService,
     private ofertaService: OfertaLaboralService
   ) {}
 
   ngOnInit(): void {
-    const idStr = this.auth.getId();
     const email = this.auth.getSub();
+    this.nombre = email?.split('@')[0] ?? '';
+
+    const idStr = this.auth.getId();
     if (idStr) {
       this.idUsuario = Number(idStr);
-      this.nombre = email?.split('@')[0] ?? '';
-      this.postulacionService.porCandidato(this.idUsuario).subscribe({
-        next: p => { this.postulaciones = p; this.aceptadas = p.filter(x => x.estado === 'ACEPTADA').length; },
-        error: () => {}
-      });
-    } else if (email) {
-      this.usuarioService.buscarPorEmail(email).subscribe({
-        next: u => {
-          this.nombre = u.nombre;
-          this.idUsuario = u.idUsuario!;
-          this.postulacionService.porCandidato(u.idUsuario!).subscribe({
-            next: p => { this.postulaciones = p; this.aceptadas = p.filter(x => x.estado === 'ACEPTADA').length; },
-            error: () => {}
-          });
-        },
-        error: () => {}
-      });
+      this.cargarPostulaciones(this.idUsuario);
     }
-    this.ofertaService.activas().subscribe({ next: o => this.ofertas = o.slice(0, 3), error: () => {} });
+
+    // Cargar ofertas para el mapa de títulos y las recientes
+    this.ofertaService.listar().subscribe({
+      next: o => {
+        o.forEach(oferta => {
+          if (oferta.idOferta) this.ofertasMap[oferta.idOferta] = oferta;
+        });
+        this.ofertas = o.slice(0, 3);
+      },
+      error: () => {}
+    });
+  }
+
+  private cargarPostulaciones(idUsuario: number): void {
+    this.postulacionService.porCandidato(idUsuario).subscribe({
+      next: p => {
+        this.postulaciones = p;
+        this.aceptadas = p.filter(x => x.estado === 'ACEPTADA').length;
+      },
+      error: () => {}
+    });
   }
 
   estadoClass(estado?: string): string {
@@ -59,8 +65,15 @@ export class DashboardComponent implements OnInit {
     return 'bg-yellow-100 text-yellow-800';
   }
 
-  ofertaTitulo(p: Postulacion): string {
-    if (!p.ofertaLaboral) return '—';
-    return typeof p.ofertaLaboral === 'string' ? p.ofertaLaboral : p.ofertaLaboral.titulo ?? '—';
+  ofertaTitulo(p: any): string {
+    // Intentar con objeto completo
+    if (p.ofertaLaboral && typeof p.ofertaLaboral === 'object') {
+      return p.ofertaLaboral.titulo ?? '—';
+    }
+    // Cruzar con mapa por idOferta
+    if (p.idOferta && this.ofertasMap[p.idOferta]) {
+      return this.ofertasMap[p.idOferta].titulo ?? '—';
+    }
+    return '—';
   }
 }
