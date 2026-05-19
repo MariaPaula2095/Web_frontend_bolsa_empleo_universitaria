@@ -60,6 +60,21 @@ export class PostulacionesComponent implements OnInit {
     }
   }
 
+  empresaNombre(p: any): string {
+    if (p.ofertaLaboral && typeof p.ofertaLaboral === 'object') {
+      const emp = p.ofertaLaboral.empresa;
+      if (emp && typeof emp === 'object') return emp.nombre ?? '';
+      if (typeof emp === 'string') return emp;
+    }
+    const idOferta = p.ofertaLaboral?.idOferta ?? p.idOferta;
+    if (idOferta && this.ofertas[idOferta]) {
+      const emp = this.ofertas[idOferta].empresa;
+      if (emp && typeof emp === 'object') return emp.nombre ?? '';
+      if (typeof emp === 'string') return emp;
+    }
+    return '';
+  }
+
   ofertaTitulo(p: any): string {
     // Intentar con objeto completo primero
     if (p.ofertaLaboral && typeof p.ofertaLaboral === 'object') {

@@ -24,6 +24,9 @@
           <div class="p-6 flex justify-between items-center">
             <div>
               <h3 class="font-semibold text-gray-900">{{ ofertaTitulo(p) }}</h3>
+              @if (empresaNombre(p)) {
+                <p class="text-blue-700 text-sm font-medium mt-0.5">{{ empresaNombre(p) }}</p>
+              }
               @if (p.fechaPostulacion) {
                 <p class="text-gray-400 text-xs mt-1">Postulado el {{ p.fechaPostulacion }}</p>
               }
