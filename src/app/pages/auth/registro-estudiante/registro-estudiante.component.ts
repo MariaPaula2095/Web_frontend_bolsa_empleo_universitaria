@@ -13,6 +13,7 @@ export class RegistroEstudianteComponent {
   cargando = false;
   error = '';
   exito = false;
+  verPassword = false;
 
   constructor(private fb: FormBuilder, private usuarioService: UsuarioService, private router: Router) {
     this.form = this.fb.group({

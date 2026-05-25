@@ -1,22 +1,27 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { OfertaLaboralService } from '../../../core/services/oferta-laboral.service';
 import { OfertaLaboral } from '../../../core/models/oferta-laboral.model';
 
 @Component({
   selector: 'app-empresa-ofertas',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FormsModule],
   templateUrl: './ofertas.component.html'
 })
 export class OfertasComponent implements OnInit {
-  ofertas: OfertaLaboral[] = [];
+  ofertasOriginales: OfertaLaboral[] = [];
+  ofertasFiltradas: OfertaLaboral[] = [];
   cargando = true;
   mostrarForm = false;
   editando: OfertaLaboral | null = null;
   form: FormGroup;
   guardando = false;
   mensaje = '';
+
+  busqueda = '';
+  estadoFiltro = '';
+  modalidadFiltro = '';
 
   constructor(
     private fb: FormBuilder,
@@ -42,7 +47,8 @@ export class OfertasComponent implements OnInit {
     const idEmpresa = Number(this.auth.getId());
     this.ofertaService.listar().subscribe({
       next: data => {
-        this.ofertas = data.filter(o => Number((o as any).idEmpresa) === idEmpresa);
+        this.ofertasOriginales = data.filter(o => Number((o as any).idEmpresa) === idEmpresa);
+        this.aplicarFiltros();
         this.cargando = false;
       },
       error: () => { this.cargando = false; }
@@ -83,6 +89,17 @@ export class OfertasComponent implements OnInit {
   eliminar(id: number): void {
     if (!confirm('¿Eliminar esta oferta?')) return;
     this.ofertaService.eliminar(id).subscribe({ next: () => this.cargarOfertas() });
+  }
+
+  aplicarFiltros(): void {
+    const q = this.busqueda.toLowerCase().trim();
+    this.ofertasFiltradas = this.ofertasOriginales.filter(o => {
+      const coincideTexto = !q || o.titulo?.toLowerCase().includes(q) || o.area?.toLowerCase().includes(q);
+      const coincideEstado = !this.estadoFiltro ||
+        (this.estadoFiltro === 'activa' ? o.estado === true : o.estado === false);
+      const coincideModalidad = !this.modalidadFiltro || o.modalidad === this.modalidadFiltro;
+      return coincideTexto && coincideEstado && coincideModalidad;
+    });
   }
 
   modalidadClass(m?: string): string {

@@ -1,15 +1,21 @@
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { OfertaLaboralService } from '../../../core/services/oferta-laboral.service';
 import { OfertaLaboral } from '../../../core/models/oferta-laboral.model';
 
 @Component({
   selector: 'app-admin-ofertas',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './ofertas.component.html'
 })
 export class OfertasComponent implements OnInit {
-  ofertas: OfertaLaboral[] = [];
+  ofertasOriginales: OfertaLaboral[] = [];
+  ofertasFiltradas: OfertaLaboral[] = [];
   cargando = true;
+
+  busqueda = '';
+  modalidadFiltro = '';
+  estadoFiltro = '';
 
   constructor(private service: OfertaLaboralService) {}
 
@@ -17,8 +23,25 @@ export class OfertasComponent implements OnInit {
 
   cargar(): void {
     this.service.listar().subscribe({
-      next: d => { this.ofertas = d; this.cargando = false; },
+      next: d => {
+        this.ofertasOriginales = d;
+        this.aplicarFiltros();
+        this.cargando = false;
+      },
       error: () => { this.cargando = false; }
+    });
+  }
+
+  aplicarFiltros(): void {
+    const q = this.busqueda.toLowerCase().trim();
+    this.ofertasFiltradas = this.ofertasOriginales.filter(o => {
+      const coincideTexto = !q ||
+        o.titulo?.toLowerCase().includes(q) ||
+        this.empresaNombre(o).toLowerCase().includes(q);
+      const coincideModalidad = !this.modalidadFiltro || o.modalidad === this.modalidadFiltro;
+      const coincideEstado = !this.estadoFiltro ||
+        (this.estadoFiltro === 'activa' ? o.estado === true : o.estado === false);
+      return coincideTexto && coincideModalidad && coincideEstado;
     });
   }
 
@@ -26,6 +49,8 @@ export class OfertasComponent implements OnInit {
     if (!confirm('¿Eliminar esta oferta?')) return;
     this.service.eliminar(id).subscribe({ next: () => this.cargar() });
   }
+
+  get ofertas(): OfertaLaboral[] { return this.ofertasFiltradas; }
 
   modalidadClass(m?: string): string {
     if (m === 'REMOTO') return 'bg-green-100 text-green-800';

@@ -52,6 +52,16 @@ export class PostulacionesComponent implements OnInit {
     });
   }
 
+  cancelar(p: Postulacion): void {
+    if (!confirm('¿Cancelar esta postulación?')) return;
+    this.postulacionService.eliminar(p.idPostulacion!).subscribe({
+      next: () => {
+        this.postulaciones = this.postulaciones.filter(x => x.idPostulacion !== p.idPostulacion);
+      },
+      error: () => alert('No se pudo cancelar la postulación. Intenta de nuevo.')
+    });
+  }
+
   verHistorial(idPostulacion: number): void {
     if (this.expandido === idPostulacion) { this.expandido = null; return; }
     this.expandido = idPostulacion;

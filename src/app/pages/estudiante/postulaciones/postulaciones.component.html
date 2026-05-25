@@ -37,6 +37,12 @@
                 class="text-blue-700 text-sm hover:underline">
                 {{ expandido === p.idPostulacion ? 'Ocultar' : 'Ver historial' }}
               </button>
+              @if (p.estado === 'PENDIENTE') {
+                <button (click)="cancelar(p)"
+                  class="text-red-500 hover:text-red-700 text-sm font-medium transition-colors">
+                  Cancelar
+                </button>
+              }
             </div>
           </div>
 

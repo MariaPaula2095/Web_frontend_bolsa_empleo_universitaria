@@ -56,6 +56,7 @@ export const routes: Routes = [
       { path: 'dashboard', loadComponent: () => import('./pages/empresa/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'ofertas', loadComponent: () => import('./pages/empresa/ofertas/ofertas.component').then(m => m.OfertasComponent) },
       { path: 'postulantes', loadComponent: () => import('./pages/empresa/postulantes/postulantes.component').then(m => m.PostulantesComponent) },
+      { path: 'perfil', loadComponent: () => import('./pages/empresa/perfil/perfil.component').then(m => m.PerfilComponent) },
     ]
   },
   { path: '**', redirectTo: '' }

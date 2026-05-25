@@ -4,7 +4,11 @@
   <aside class="w-64 bg-blue-900 text-white flex flex-col shrink-0">
     <div class="p-6 border-b border-blue-800">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center font-bold shrink-0">BEU</div>
+        @if (fotoUrl) {
+          <img [src]="fotoUrl" alt="Foto" class="w-10 h-10 rounded-full object-cover shrink-0 border-2 border-blue-500">
+        } @else {
+          <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center font-bold shrink-0 text-sm">{{ iniciales }}</div>
+        }
         <div>
           <div class="font-semibold text-sm">Mi Portal</div>
           <div class="text-blue-300 text-xs">Estudiante / Egresado</div>

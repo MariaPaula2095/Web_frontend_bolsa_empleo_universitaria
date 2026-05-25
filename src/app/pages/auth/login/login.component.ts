@@ -13,6 +13,7 @@ export class LoginComponent {
   form: FormGroup;
   cargando = false;
   error = '';
+  verPassword = false;
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
     this.form = this.fb.group({
@@ -44,8 +45,24 @@ export class LoginComponent {
         else this.router.navigate(['/estudiante']);
       },
       error: () => {
-        this.error = 'Credenciales incorrectas. Verifica tu email y contraseña.';
-        this.cargando = false;
+        // Si falló en tab empresa, intenta con el endpoint de usuario (para admin)
+        if (this.tipo === 'empresa') {
+          this.auth.loginUsuario(this.form.value).subscribe({
+            next: () => {
+              const rol = this.auth.getRol();
+              if (rol === 'ADMIN') this.router.navigate(['/admin']);
+              else { this.error = 'Credenciales incorrectas. Verifica tu email y contraseña.'; }
+              this.cargando = false;
+            },
+            error: () => {
+              this.error = 'Credenciales incorrectas. Verifica tu email y contraseña.';
+              this.cargando = false;
+            }
+          });
+        } else {
+          this.error = 'Credenciales incorrectas. Verifica tu email y contraseña.';
+          this.cargando = false;
+        }
       }
     });
   }

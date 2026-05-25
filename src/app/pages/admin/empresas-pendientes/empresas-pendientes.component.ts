@@ -9,9 +9,12 @@ import { EmpresaPendiente } from '../../../core/models/empresa-pendiente.model';
   templateUrl: './empresas-pendientes.component.html'
 })
 export class EmpresasPendientesComponent implements OnInit {
-  empresas: EmpresaPendiente[] = [];
+  empresasOriginales: EmpresaPendiente[] = [];
+  empresasFiltradas: EmpresaPendiente[] = [];
   cargando = true;
   mensajes: { [id: number]: string } = {};
+
+  busqueda = '';
 
   constructor(private service: EmpresaPendienteService) {}
 
@@ -19,10 +22,25 @@ export class EmpresasPendientesComponent implements OnInit {
 
   cargar(): void {
     this.service.listar().subscribe({
-      next: d => { this.empresas = d.filter(e => e.estado === 'PENDIENTE'); this.cargando = false; },
+      next: d => {
+        this.empresasOriginales = d.filter(e => e.estado === 'PENDIENTE');
+        this.aplicarFiltros();
+        this.cargando = false;
+      },
       error: () => { this.cargando = false; }
     });
   }
+
+  aplicarFiltros(): void {
+    const q = this.busqueda.toLowerCase().trim();
+    this.empresasFiltradas = this.empresasOriginales.filter(e =>
+      !q ||
+      e.nombre?.toLowerCase().includes(q) ||
+      e.email?.toLowerCase().includes(q)
+    );
+  }
+
+  get empresas(): EmpresaPendiente[] { return this.empresasFiltradas; }
 
   aprobar(id: number): void {
     this.service.aprobar(id, this.mensajes[id]).subscribe({ next: () => this.cargar() });

@@ -13,6 +13,7 @@ export class RegistroEmpresaComponent {
   cargando = false;
   error = '';
   exito = false;
+  verPassword = false;
 
   constructor(private fb: FormBuilder, private service: EmpresaPendienteService) {
     this.form = this.fb.group({

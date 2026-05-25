@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { OfertaLaboralService } from '../../../core/services/oferta-laboral.service';
 import { PostulacionService } from '../../../core/services/postulacion.service';
@@ -9,16 +10,20 @@ import { Usuario } from '../../../core/models/usuario.model';
 
 @Component({
   selector: 'app-empresa-postulantes',
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './postulantes.component.html'
 })
 export class PostulantesComponent implements OnInit {
   ofertas: OfertaLaboral[] = [];
+  ofertasFiltradas: OfertaLaboral[] = [];
   postulantes: { [idOferta: number]: Postulacion[] } = {};
   usuarios: { [idUsuario: number]: Usuario } = {};
   expandido: number | null = null;
   cargando = true;
   actualizando: number | null = null;
+
+  busqueda = '';
+  estadoFiltro = '';
 
   constructor(
     private auth: AuthService,
@@ -44,6 +49,7 @@ export class PostulantesComponent implements OnInit {
     this.ofertaService.listar().subscribe({
       next: ofertas => {
         this.ofertas = ofertas.filter(o => Number((o as any).idEmpresa) === idEmpresa);
+        this.ofertasFiltradas = [...this.ofertas];
         this.cargando = false;
       },
       error: () => { this.cargando = false; }
@@ -70,6 +76,19 @@ export class PostulantesComponent implements OnInit {
       },
       error: () => { this.actualizando = null; }
     });
+  }
+
+  aplicarFiltros(): void {
+    const q = this.busqueda.toLowerCase().trim();
+    this.ofertasFiltradas = this.ofertas.filter(o =>
+      !q || o.titulo?.toLowerCase().includes(q) || o.area?.toLowerCase().includes(q)
+    );
+  }
+
+  postulantesVisibles(idOferta: number): Postulacion[] {
+    const lista = this.postulantes[idOferta] ?? [];
+    if (!this.estadoFiltro) return lista;
+    return lista.filter(p => p.estado === this.estadoFiltro);
   }
 
   estadoClass(estado?: string): string {
